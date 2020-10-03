@@ -22,7 +22,7 @@ Parts of the Kickstart file were shamelessly copied from the https://pagure.io/f
 - Or well, you can use mine, but don't come crying to me if you don't know the Passwords or the setup isn't the way you like it.
 - Place the files on your USB stick, CD, or start Serva and share the files per http.
 - Boot the CD
-- Hit kbd:[ESC] as soon as you can see the boot menu.
+- Hit _<ESC>_ as soon as you can see the boot menu.
 - Enter the following (replace my github address with your kickstart file path)
 [source, shell]
 ----
