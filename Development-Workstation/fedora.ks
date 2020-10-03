@@ -94,7 +94,7 @@ pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 dnf -y update
 mkdir /var/my_scripts
 chmod 777 /var/my_scripts
-wget http://192.168.8.121/setup.sh -O /var/my_scripts/setup.sh
+wget https://raw.githubusercontent.com/renegadexxl/HomeLab/master/Development-Workstation/setup.sh -O /var/my_scripts/setup.sh
 chmod 777 /var/my_scripts/setup.sh
 (crontab -l; echo "@reboot /var/my_scripts/setup.sh --user renegadexxl";) | crontab -
 %end
