@@ -1,0 +1,32 @@
+= Development Workstation
+
+Setting up a Workstation to create all the scripts and test them.
+The Kickstart File installs the Fedora 32 Cinnamon Spin and sets a Setup Script to run after reboot.
+
+Parts of the Kickstart file were shamelessly copied from the https://pagure.io/fedora-kickstarts/tree/master[official Fedora Kickstart Files].
+
+== Prerequisite
+
+- Working Workstation to create USB Stick or burn CD.
+- Working Internet Connection
+- DHCP Working in your Network
+- Fedora 32 Everything ISO File from https://dl.fedoraproject.org/pub/fedora/linux/releases/32/Everything/x86_64/iso/ [here].
+- Serva Comunity from https://www.vercot.com/~serva/download.html[here] if you are on a Windows Workstation and not using an USB Stick.
+
+== How To
+
+- Burn the CD or create Bootable USB Stick.
+- Download the Kickstart File from this Repo.
+- Modify it to suit your needs.
+- Modify or write a script to set up the Workstation the way you like it.
+- Or well, you can use mine, but don't come crying to me if you don't know the Passwords or the setup isn't the way you like it.
+- Place the files on your USB stick, CD, or start Serva and share the files per http.
+- Boot the CD
+- Hit kbd:[ESC] as soon as you can see the boot menu.
+- Enter the following (replace my github address with your kickstart file path)
+[source, shell]
+----
+boot: linux ks=https://raw.githubusercontent.com/renegadexxl/HomeLab/master/Development-Workstation/fedora.ks
+----
+- Wait for your Workstation to finish installing, rebooting and your setup script to finish.
+- Done.
