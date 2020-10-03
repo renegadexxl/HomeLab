@@ -1,0 +1,5 @@
+== HomeLab
+
+This is my try to automate as much as possible of setting up a quick Lab.
+
+Take whatever you want from this.
