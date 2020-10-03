@@ -10,7 +10,7 @@ Parts of the Kickstart file were shamelessly copied from the https://pagure.io/f
 - Working Workstation to create USB Stick or burn CD.
 - Working Internet Connection
 - DHCP Working in your Network
-- Fedora 32 Everything ISO File from https://dl.fedoraproject.org/pub/fedora/linux/releases/32/Everything/x86_64/iso/ [here].
+- Fedora 32 Everything ISO File from https://dl.fedoraproject.org/pub/fedora/linux/releases/32/Everything/x86_64/iso/[here].
 - Serva Comunity from https://www.vercot.com/~serva/download.html[here] if you are on a Windows Workstation and not using an USB Stick.
 
 == How To
