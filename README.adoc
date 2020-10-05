@@ -1,5 +1,26 @@
-== HomeLab
+= HomeLab
 
 This is my try to automate as much as possible of setting up a quick Lab.
 
 Take whatever you want from this.
+It's mostly my place to save finished scripts, explanations and ways to tie it all together anyways.
+
+If there is anything you can use from this feel free.
+
+== Getting Started
+
+To start with, we need to set up a Development Workstation.
+This I did by setting up a Fedora 32 via Kickstart and a configuration script.
+
+I decided to go with a single bash script for configuration,
+simply because it was the most convenient way to go about it.
+
+We don't have any of the tools in place for anything fancy and I didn't want much in the way of manual work.
+If you want to know more, take a look into the 'Development-Workstation' Directory I will explain a bit more in the Readme there.
+
+== Getting started with development and testing your ideas
+
+Once you have your Development Workstation set up, it is a good idea to set up some Folders and Files to make use of all those awesome tools.
+This is what the Folder "Development-Environment" is all about.
+
+It contains scripts and everything else necessary to get cracking with testing and developing infrastructure.

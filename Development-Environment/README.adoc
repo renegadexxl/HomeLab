@@ -1,0 +1,22 @@
+= Development Environment
+
+This isn't really chained to my Development Workstation.
+Even if it works hand in hand with it.
+
+This makes use of packer and vagrant to take a single command, some scripts and declaration files and spits out a vagrant box ready for testing ansible scripts on.
+
+If you don't know what vagrant is, you have been living under a rock or haven't been involved in DevOps for quite some time.
+
+While I quite like vagrant, my biggest complain has always been the generic boxes.
+Those didn't reflect the production servers I wanted to set up quite right.
+Stuff like Security, partitioning, and so on was always not what I wanted.
+Making my own base boxes was also a huge pain in my ass.
+As soon as I had one finished, a whole slew of updates came in and yum update after vagrant up took ages.
+
+In comes Packer a nice neat little tool from the same Company as Vagrant.
+Getting vagrant boxes for testing or provisioning those same boxes on my Virtualization Environment suddenly got way easier.
+
+Throwing in some simple bash script as glue, I can just issue a single command and have everything taken care of for me.
+From downloading the necessary iso file to installing the OS, generating the box, adding it to vagrant and setting up the vagrant file.
+
+Neat!
