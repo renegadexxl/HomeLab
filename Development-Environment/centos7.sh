@@ -2,6 +2,9 @@
 NAME=$(basename $0 .sh)
 PROVIDER="libvirt"
 
+# Call Common
+source glue/common.sh
+
 # Replace Vagrantfile
 if [ -d "vagrant/${NAME}" ]
 then
