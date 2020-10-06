@@ -308,6 +308,8 @@ function install_atom ()
     local cmd=(dnf -y install $path)
     progress "Installing atom" "${cmd[@]}"
   fi
+
+  is_installed ShellCheck
 }
 
 ## Install Google Chrome
@@ -358,6 +360,21 @@ function install_rdp ()
 function install_vagrant ()
 {
   is_installed vagrant
+
+  if ! genent group vagrant &>/dev/null
+  then
+    groupadd vagrant
+    cat <<EOF >> /etc/sudoers
+
+Cmnd_Alias VAGRANT_EXPORTS_CHOWN = /bin/chown 0\:0 /tmp/*
+Cmnd_Alias VAGRANT_EXPORTS_MV = /bin/mv -f /tmp/* /etc/exports
+Cmnd_Alias VAGRANT_NFSD_CHECK = /usr/bin/systemctl status --no-pager nfs-server.service
+Cmnd_Alias VAGRANT_NFSD_START = /usr/bin/systemctl start nfs-server.service
+Cmnd_Alias VAGRANT_NFSD_APPLY = /usr/sbin/exportfs -ar
+%vagrant ALL=(root) NOPASSWD: VAGRANT_EXPORTS_CHOWN, VAGRANT_EXPORTS_MV, VAGRANT_NFSD_CHECK, VAGRANT_NFSD_START, VAGRANT_NFSD_APPLY
+EOF
+  fi
+
 }
 
 ## Install packer
@@ -474,6 +491,15 @@ function install_kvm ()
   then
     local cmd=(groupadd kvm)
     progress "Adding KVM Group" "${cmd[@]}"
+
+    echo "polkit.addRule(function(action, subject) {
+ if (action.id == "org.libvirt.unix.manage" && subject.local && subject.active && subject.isInGroup("libvirt")) {
+ return polkit.Result.YES;
+ }
+ if (action.id == "org.libvirt.unix.manage" && subject.local && subject.active && subject.isInGroup("kvm")) {
+ return polkit.Result.YES;
+ }
+});" > /etc/polkit-1/rules.d/80-libvirt.rules
   fi
 
   if [ -d /home/kvm ]
@@ -499,6 +525,65 @@ function install_kvm ()
     local cmd=(ln -s /home/kvm /var/lib/libvirt/images)
     progress "Creating Link to new KVM VM Directory" "${cmd[@]}"
   fi
+}
+
+## Install VMware Player 16
+function install_vmware ()
+{
+  wget https://download3.vmware.com/software/player/file/VMware-Player-16.0.0-16894299.x86_64.bundle
+  sh ./VMware-Player-16.0.0-16894299.x86_64.bundle
+  rm -rf VMware-Player-16.0.0-16894299.x86_64.bundle
+}
+
+## Install vagrant dependencies
+function install_vagrant_libvirt ()
+{
+  dnf -y install cmake byacc
+
+  cd /tmp
+  mkdir libssh
+  cd libssh
+
+  dnf download --source libssh
+  local file=$(ls libssh*)
+  rpm2cpio $file | cpio -imdV
+  local file=$(ls *.tar.xz)
+  tar xf $file
+  local dir=${file%".tar.xz"}
+  mkdir build
+  cd build
+  cmake ../$dir -DOPENSSL_ROOT_DIR=/opt/vagrant/embedded/
+  make
+  cp lib/libssh* /opt/vagrant/embedded/lib64
+
+  cd /tmp
+  mkdir krb5-libs
+  cd krb5-libs
+
+  dnf download --source krb5-libs
+  local file=$(ls krb5*)
+  rpm2cpio $file | cpio -imdV
+  local file=$(ls *.tar.xz)
+  tar xf $file
+  local dir=${file%".tar.xz"}
+  cd $dir/src
+  ./configure
+  make
+  cp -a lib/crypto/libk5crypto.* /opt/vagrant/embedded/lib64/
+
+  firewall-cmd --permanent --zone public --add-service mountd
+  firewall-cmd --permanent --zone public --add-service rpc-bind
+  firewall-cmd --permanent --zone public --add-service nfs
+  firewall-cmd --permanent --zone public --add-service nfs3
+
+  firewall-cmd --permanent --zone libvirt --add-service mountd
+  firewall-cmd --permanent --zone libvirt --add-service rpc-bind
+  firewall-cmd --permanent --zone libvirt --add-service nfs
+  firewall-cmd --permanent --zone libvirt --add-service nfs3
+
+  firewall-cmd --reload
+
+  cd $SCRIPT_DIR
 }
 
 # Install bridge for use with kvm
@@ -771,7 +856,7 @@ EOT
 ## Set up Atom
 function setup_atom ()
 {
-  apm install ansible-galaxy asciidoc-assistant language-asciidoc asciidoc-preview asciidoc-image-helper autocomplete-asciidoc autocomplete-ansible busy-signal docker intentions language-ansible linter linter-ansible-linting linter-ansible-syntax linter-docker linter-ui-default linter-yaml linter-vagrant-validate linter-packer-validate
+  apm install ansible-galaxy asciidoc-assistant language-asciidoc asciidoc-preview asciidoc-image-helper autocomplete-asciidoc autocomplete-ansible busy-signal docker intentions language-ansible linter linter-ansible-linting linter-ansible-syntax linter-docker linter-ui-default linter-yaml linter-vagrant-validate linter-packer-validate linter-shellcheck
 }
 
 ## Setup dot files for user settings
@@ -791,6 +876,12 @@ function user_settings ()
   progress "Setting up Atom" "${cmd[@]}"
   local cmd=(ln -s /home/kvm $USER_HOME/kvm)
   progress "Creating Link to KVM VM Directory" "${cmd[@]}"
+
+  rm -rf $USER_HOME/.vagrant.d
+  vagrant plugin install vagrant_libvirt
+  #local cmd=(vagrant plugin install vagrant_libvirt)
+  #progress "Installing vagrant-libvirt plugin" "${cmd[@]}"
+
   cd $SCRIPT_DIR
 }
 
@@ -883,11 +974,18 @@ then
     install_rdp
 
     section "Install virtualization Tools"
-    install_vagrant
     install_packer
+    install_vagrant
     install_docker
     install_vb
     install_kvm
+
+    local cmd=(install_vmware)
+    progress "Compiling neccessary Dependencies for vagrant-libvirt" "${cmd[@]}"
+    #local cmd=(install_vagrant_libvirt)
+    #progress "Compiling neccessary Dependencies for vagrant-libvirt" "${cmd[@]}"
+    install_vagrant_libvirt
+
   fi
 
   if [ $NO_USER -eq 0 ]
@@ -898,6 +996,8 @@ then
     progress "Adding Oh-My-ZSH plugin thefuck" "${cmd[@]}"
     echo "eval \$(thefuck --alias)" >> $USER_HOME/.zshrc
 
+    cmd=(usermod -aG vagrant $SCRIPT_USER)
+    progress "Add User to vagrant Group" "${cmd[@]}"
     cmd=(usermod -aG docker $SCRIPT_USER)
     progress "Add User to docker Group" "${cmd[@]}"
     cmd=(usermod -aG kvm $SCRIPT_USER)
@@ -907,7 +1007,7 @@ then
 
   fi
 
-  install_kvm_net
+  #install_kvm_net
 
   if [ $ERROR_COUNT -eq 0 ]
   then
