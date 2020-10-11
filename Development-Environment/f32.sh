@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # @name: centos7
-# @discription: Generate RHEL 7.9 Minimal Installation
+# @discription: Generate Fedora 32 Minimal Installation
 #               for vmware, virtualbox, libvirt and vagrant.
 
 . $(dirname $(readlink -f $0))/glue/base.sh
@@ -11,7 +11,7 @@
 #            Variables Block                 #
 ##############################################
 
-# Base Name to use for generation of VMs
+# Base Name to use for generation
 export NAME=$(basename $0 .sh)
 
 # Debug Mode
@@ -24,9 +24,9 @@ export KICKSTART_FILE="$NAME.ks"
 export HOSTNAME="${NAME}.testing.local"
 
 # ISO Settings
-export ISO_LOCAL="${ISO_DIR}/CentOS-7-x86_64-Minimal-2003.iso"
-export ISO_URL="http://mirror.digitalnova.at/CentOS/7.8.2003/isos/x86_64/CentOS-7-x86_64-Minimal-2003.iso"
-export ISO_CHECKSUM="sha256:659691c28a0e672558b003d223f83938f254b39875ee7559d1a4a14c79173193"
+export ISO_LOCAL="${ISO_DIR}/Fedora-Everything-netinst-x86_64-32-1.6.iso"
+export ISO_URL="https://dl.fedoraproject.org/pub/fedora/linux/releases/32/Everything/x86_64/iso/Fedora-Everything-netinst-x86_64-32-1.6.iso"
+export ISO_CHECKSUM="sha256:7ce4bb4b3e77e2b0c74e5aa3478eef1c26104a7040701f9de3d3a2cb06f6b05d"
 
 # VM Settings
 export RAM="4096"

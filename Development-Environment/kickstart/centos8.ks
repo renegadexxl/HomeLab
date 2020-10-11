@@ -2,7 +2,7 @@
 text
 
 # Setting up authentication and keyboard
-auth --enableshadow --passalgo=sha512
+authselect --enableshadow --passalgo=sha512
 keyboard --xlayouts='at'
 
 # Installation source
@@ -49,10 +49,10 @@ chrony
 %post --interpreter=/bin/bash
 
 # update the system
-yum -y update
+dnf -y update
 
 # add epel repo
-yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
 ###
 # vagrant settings

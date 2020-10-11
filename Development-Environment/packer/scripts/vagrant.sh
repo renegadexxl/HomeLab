@@ -3,6 +3,14 @@
 # Update first
 yum -y update
 
+# Install nfs tools
+yum -y install nfs-utils portmap
+
+if yum info nfs-utils-lib &>/dev/null
+then
+  yum -y install nfs-utils-lib
+fi
+
 # Set build date
 date > /etc/box_build
 

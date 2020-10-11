@@ -48,6 +48,9 @@ chrony
 
 %post --interpreter=/bin/bash
 
+# register
+subscription-manager register --auto-attach --username='RHEL_USER' --password='RHEL_PASS'
+
 # update the system
 yum -y update
 

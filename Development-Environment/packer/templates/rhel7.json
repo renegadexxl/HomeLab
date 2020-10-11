@@ -142,7 +142,8 @@
       "execute_command":    "echo '{{user `password`}}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
         "{{user `script_directory`}}/vagrant.sh",
-        "{{user `script_directory`}}/{{user `provider`}}.sh"
+        "{{user `script_directory`}}/{{user `provider`}}.sh",
+        "{{user `script_directory`}}/subscription.sh"
       ]
     }
   ],

@@ -1,12 +1,12 @@
+# URLs and REPOs
+url --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-32&arch=x86_64"
+
 # Turning on text-mode installation (little quicker than GUI)
 text
 
 # Setting up authentication and keyboard
-auth --enableshadow --passalgo=sha512
+authselect --enableshadow --passalgo=sha512
 keyboard --xlayouts='at'
-
-# Installation source
-cdrom
 
 # Setting up language to English
 lang en-US.UTF-8
@@ -50,9 +50,6 @@ chrony
 
 # update the system
 yum -y update
-
-# add epel repo
-yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 ###
 # vagrant settings

@@ -1,22 +1,264 @@
 = Development Environment
 
-This isn't really chained to my Development Workstation.
-Even if it works hand in hand with it.
+== THE GOAL aka. WTF are you trying to archive?
 
-This makes use of packer and vagrant to take a single command, some scripts and declaration files and spits out a vagrant box ready for testing ansible scripts on.
+The goal is to have a few small config files and scripts and end up with a ready to use VM with as little human intervention as possible.
 
-If you don't know what vagrant is, you have been living under a rock or haven't been involved in DevOps for quite some time.
+== THE REASON aka. Why are you doing this?
 
-While I quite like vagrant, my biggest complain has always been the generic boxes.
-Those didn't reflect the production servers I wanted to set up quite right.
-Stuff like Security, partitioning, and so on was always not what I wanted.
-Making my own base boxes was also a huge pain in my ass.
-As soon as I had one finished, a whole slew of updates came in and yum update after vagrant up took ages.
+I'm well aware of vagrant and that it does pretty much what I want to archive here.
+Just write a Vagrant file and with _'vagrant up'_ you are in business.
 
-In comes Packer a nice neat little tool from the same Company as Vagrant.
-Getting vagrant boxes for testing or provisioning those same boxes on my Virtualization Environment suddenly got way easier.
+But!
 
-Throwing in some simple bash script as glue, I can just issue a single command and have everything taken care of for me.
-From downloading the necessary iso file to installing the OS, generating the box, adding it to vagrant and setting up the vagrant file.
+One of the things that has always prevented me from doing more with vagrant were the generic boxes available on the internet.
+Sure, for the most part they are fine, but updates pile up and it takes time to get them to where you want.
+Custom Partition Schemes are a pain to implement and baking already tested code into a box wasn't any better.
 
-Neat!
+That left you with making your own boxes, which, once again, is somewhat of a pain.
+
+Of course there is also the need for different Virtualization Software or exporting your finished VM to a 'Production Environment'.
+
+That's where Packer comes in!
+
+With that tool, it is possible to do all that.
+Making your own boxes, ova files and even upload a VM to a Cloud or VMware Cluster, becomes pretty easy.
+All you need is a base to start from (Existing VM, ISO file or even just the web address), a Kickstart file and JSON config file.
+Put all of this together and with a quick _'packer build config.json'_ and some time you are ready to go.
+
+That's nice, but!
+
+Kickstart files are hard coded and the packer files are pretty much the same.
+So for each different build, you have to make a new set.
+That becomes cluttered pretty fast.
+
+So let's add some glue in the form of bash scripts.
+
+== THE EXECUTION aka. What the heck did you do?
+
+First I streamlined the Directory System.
+ISO files go into the *iso* directory, finished boxes into the *finished* directory and so on.
+Then I wrote some basic Kickstart files for a minimal install of RHEL 7 & 8, CentOS 7 & 8 and Fedora 32.
+
+That was followed by packer config files for each of those OS's.
+Those config files produce a libvirt qcow2 file, virtualbox ova file, vmware ova file (you need VMware Workstation for that) as well as vagrant boxes for libvirt and virtualbox.
+
+Then I tied it all together with a few scripts here and there.
+Scripts to install the right VM guest software.
+Scripts to modify Kickstart Files.
+Scripts to register the finished box and make a _Vagrantfile_.
+You get the picture.
+
+== THE RESULT aka. So how do I use this stuff?
+
+=== Single OS
+You can generate the full scope of a single OS pretty easily by just doing:
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./centos7.sh
+----
+
+This will run through all vmware, virtualbox and libvirt in sequence.
+Because of the limitations of a local system, parallel builds aren't really possible.
+
+So after a lot of waiting and some pretty output, you will end up with a bunch of files
+
+[source, bash]
+----
+.
+├── finished
+│   ├── centos7_libvirt.box
+│   ├── centos7_libvirt.qcow2
+│   ├── centos7_virtualbox.box
+│   ├── centos7_virtualbox.ova
+│   └── centos7_vmware.ova
+├── log
+│   ├── centos7.log
+│   └── summary.log
+└── vagrant
+    ├── centos7_libvirt
+    │   ├── share
+    │   └── Vagrantfile
+    └── centos7_virtualbox
+        ├── share
+        └── Vagrantfile
+----
+
+If you don't want to run through everything and just want the vmware ova, you can do that easily.
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./centos7.sh --vmware
+----
+
+Or if you don't have access to VMware Workstation you mix and match.
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./centos7.sh --libvirt --vbox
+----
+
+For more options see:
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./centos7.sh --help
+----
+
+CentOS and Fedora will even download the iso file for you.
+The same sadly isn't possible for RHEL since you need to have a Red Hat account to download anything.
+
+On the bright side, you can get that for free by joining the https://developers.redhat.com/[Red Hat Developer Program].
+This will grant you a Developer subscription which allows up to 16 registered VMs.
+
+=== Make me one of Everything
+
+If you want to run through every single OS and build every single VM possible with this script, just do
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./pipeline.sh
+----
+
+This will call every script with the sh extension in the folder and run it.
+The script is capable of passing through arguments so if you just want virtualbox images you can do that too.
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# ./pipeline.sh --vbox
+----
+
+=== Do some testing
+
+If you want to really make sure that the basics are working right, there is a testing script for vagrant too.
+
+[source, bash]
+----
+~/HomeLab/Development-Environment# bash ./glue/testing.sh vagrant/centos7_libvirt
+----
+
+This script checks your Vagrantfile, brings up a box, checks internet connection, yum as well as guest additions and destroys the box afterwards.
+
+=== Sounds great. What do I need.
+
+Well if you are running my Development Workstation, everything is taken care of already.
+
+If you just want to use this Development Environment, you need:
+
+- a Linux Workstation
+- working libvirt install
+- working VirtualBox install
+- working VMware Workstation installation
+- vagrant
+- vagrant-libvirt plugin
+- packer
+- wget
+- Internet Access for all the VM guests
+- nfs-utils
+
+Of course if you don't have a VMware Workstation license you can skip past that and just run the script without generation vmware ova files.
+
+To permanently disable vmware modify the following lines in _glue/common.sh_.
+
+[source, bash]
+----
+75      --vmware)
+76        pl+=("vmware")
+77      ;;
+
+
+101    export PROVIDER_LIST=( "vmware" "virtualbox" "libvirt" )
+----
+
+Delete lines 75 to 77 and remove vmware from the array in line 98 (line 101 before you removed three lines).
+
+[source, bash]
+----
+75      --vbox)
+76        pl+=("virtualbox")
+77      ;;
+
+
+98     export PROVIDER_LIST=( "virtualbox" "libvirt" )
+----
+
+If you don't want to enter your sudo Password every time you run a test against a Vagrantfile, add the following lines to your sudoers file.
+
+[source, sudoers]
+----
+Cmnd_Alias VAGRANT_EXPORTS_CHOWN = /bin/chown 0\:0 /tmp/*
+Cmnd_Alias VAGRANT_EXPORTS_MV = /bin/mv -f /tmp/* /etc/exports
+Cmnd_Alias VAGRANT_NFSD_CHECK = /usr/bin/systemctl status --no-pager nfs-server.service
+Cmnd_Alias VAGRANT_NFSD_START = /usr/bin/systemctl start nfs-server.service
+Cmnd_Alias VAGRANT_NFSD_APPLY = /usr/sbin/exportfs -ar
+%vagrant ALL=(root) NOPASSWD: VAGRANT_EXPORTS_CHOWN, VAGRANT_EXPORTS_MV, VAGRANT_NFSD_CHECK, VAGRANT_NFSD_START, VAGRANT_NFSD_APPLY
+----
+
+Add your user to the vagrant group and log in and out.
+For a more detailed explanation see https://www.vagrantup.com/docs/synced-folders/nfs[the official documentation] near the bottom.
+
+==== Red Hat
+
+If you want to work with RHEL images, you need a few pieces more (annoying registration and subscription)
+
+- vagrant-registration plugin
+- RHEL ISO file
+- Red Hat account
+- RH Account information in a file
+
+[source, bash]
+.glue/rhel.pwd
+----
+RHEL_USER='YOUR_USER'
+RHEL_PASS='YOUR_PASSWORD'
+----
+
+== MODIFICATION or What's the difference to vagrant init a generic box?
+
+If you just want a running box, there isn't really any.
+
+[source, bash]
+----
+vagrant init centos/7
+----
+
+is a lot faster than
+
+[source, bash]
+----
+./centos7.sh --vbox
+----
+
+especially if the script has to download the ISO as well.
+
+If you want to modify these boxes and bake in some other stuff or change partition schemes, that's where it gets interesting.
+
+There are three files that govern the outcome of all of this.
+
+- The Kickstart File at ./kickstart/name.ks
+- The Packer Template file at ./packer/templates/name.json
+- The Controll Script at ./name.sh
+
+=== The Controll Script
+
+The Script is just a list of Variables and sources the needed function.
+It's short, documented an should be easily understandable.
+
+=== The Packer Template
+
+Those templates are pretty generic as well and most of the information gets imported via Environmental Variables.
+The interesting part here is the "provisioners" section.
+There you can add any scripts, ansible playbook, chef cookbooks and so on.
+You can find more information about that https://www.packer.io/docs/templates/provisioners[here] and https://www.packer.io/docs/provisioners[here].
+
+=== The Kickstart File
+
+Those are pretty generic minimal installation Kickstart files.
+The scripts only change the hostname to the one specified in The Controll Script and add the RedHat Account information if necessary.
+While the whole Account info thing isn't strictly necessary, doing it this way, prevents accidentally uploading those same informations to git (separated file and gitignore for the win).
+If you just want to bake in some more packages or do some other simple stuff, the *%post --interpreter=/bin/bash* part of the Kickstart file is your friend.
+
+== Conclusion
+
+Use my tools or not, but I had fun coming up with them so stay excellent and have fun ;)

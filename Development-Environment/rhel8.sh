@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
 # @name: centos7
-# @discription: Generate RHEL 7.9 Minimal Installation
+# @discription: Generate RHEL 8.2 Minimal Installation
 #               for vmware, virtualbox, libvirt and vagrant.
 
 . $(dirname $(readlink -f $0))/glue/base.sh
 . $(dirname $(readlink -f $0))/glue/common.sh
+. $(dirname $(readlink -f $0))/glue/rhel.pwd
 
 ##############################################
 #            Variables Block                 #
@@ -24,9 +25,9 @@ export KICKSTART_FILE="$NAME.ks"
 export HOSTNAME="${NAME}.testing.local"
 
 # ISO Settings
-export ISO_LOCAL="${ISO_DIR}/CentOS-7-x86_64-Minimal-2003.iso"
-export ISO_URL="http://mirror.digitalnova.at/CentOS/7.8.2003/isos/x86_64/CentOS-7-x86_64-Minimal-2003.iso"
-export ISO_CHECKSUM="sha256:659691c28a0e672558b003d223f83938f254b39875ee7559d1a4a14c79173193"
+export ISO_LOCAL="${ISO_DIR}/rhel-8.2-x86_64-dvd.iso"
+export ISO_URL=""
+export ISO_CHECKSUM="sha256:7fdfed9c7cced4e526a362e64ed06bcdc6ce0394a98625a40e7d05db29bf7b86"
 
 # VM Settings
 export RAM="4096"
@@ -34,12 +35,19 @@ export CPUS="4"
 export HDD_SIZE="30720"
 
 # Vagrant Settings
+export VAGRANT_BASE_DIR="${SCRIPT_DIR}/vagrant"
 export VAGRANTFILE=(
   "# -*- mode: ruby -*-"
   "# vi: set ft=ruby :"
   "ENV['VAGRANT_DEFAULT_PROVIDER'] = ''"
   ""
   "Vagrant.configure('2') do |config|"
+  ""
+  "  if Vagrant.has_plugin?('vagrant-registration')"
+  "    config.registration.username = '${RHEL_USER}'"
+  "    config.registration.password = '${RHEL_PASS}'"
+  "  end"
+  ""
   "  config.vm.box = '${NAME}'"
   "  config.vm.synced_folder 'share', '/vagrant', type: 'nfs', nfs_udp: false, nfs_version: 3"
   "end"
@@ -50,5 +58,4 @@ export VAGRANTFILE=(
 ##############################################
 
 script_init
-check_iso
 script_run
