@@ -1,0 +1,160 @@
+{
+  "variables": {
+    "name":                     "{{env `NAME`}}",
+    "provider":                 "{{env `PROVIDER`}}",
+
+    "output_directory":         "{{env `PACKER_RESULT_DIR`}}",
+    "script_directory":         "{{env `PACKER_SCRIPT_DIR`}}",
+
+    "http_directory":           "{{env `KICKSTART_DIR`}}",
+    "kickstart_file":           "{{env `KICKSTART_FILE`}}",
+
+    "iso_target_path":          "{{env `ISO_DIR`}}",
+    "iso_local":                "{{env `ISO_LOCAL`}}",
+    "iso_url":                  "{{env `ISO_URL`}}",
+    "iso_checksum":             "{{env `ISO_CHECKSUM`}}",
+
+    "ram":                      "{{env `RAM`}}",
+    "cpus":                     "{{env `CPUS`}}",
+    "hdd_size":                 "{{env `HDD_SIZE`}}",
+
+    "headless":                 "{{env `HEADLESS`}}",
+    "user":                     "vagrant",
+    "password":                 "vagrant"
+  },
+
+  "builders":
+  [
+    {
+      "name":                   "libvirt",
+      "type":                   "qemu",
+      "format":                 "qcow2",
+      "accelerator":            "kvm",
+      "disk_compression":       true,
+      "disk_interface":         "virtio",
+      "net_device":             "virtio-net",
+
+      "headless":               "{{user `headless`}}",
+      "output_directory":       "{{user `output_directory`}}/{{user `name`}}_{{user `provider`}}",
+
+      "vm_name":                "{{user `name`}}_{{user `provider`}}",
+      "cpus":                   "{{user `cpus`}}",
+      "memory":                 "{{user `ram`}}",
+      "disk_size":              "{{user `hdd_size`}}",
+
+      "iso_target_path":        "{{user `iso_target_path`}}",
+      "iso_urls":               [
+                                  "{{user `iso_local`}}",
+                                  "{{user `iso_url`}}"
+                                ],
+      "iso_checksum":           "{{user `iso_checksum`}}",
+
+      "http_directory":         "{{user `http_directory`}}",
+
+      "ssh_username":           "{{ user `user` }}",
+      "ssh_password":           "{{ user `password` }}",
+      "ssh_port":               22,
+      "ssh_wait_timeout":       "60m",
+
+      "shutdown_command":       "echo '{{user `password`}}'|sudo -S shutdown -P now",
+
+      "boot_wait":              "4s",
+      "boot_command": [
+        "<up><wait><tab><wait> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `kickstart_file`}}<enter><wait>"
+      ]
+    },
+    {
+      "name":                   "virtualbox",
+      "type":                   "virtualbox-iso",
+      "guest_os_type":          "RedHat_64",
+      "format":                 "ova",
+      "guest_additions_path":   "VBoxGuestAdditions.iso",
+
+      "headless":               "{{user `headless`}}",
+      "output_directory":       "{{user `output_directory`}}/{{user `name`}}_{{user `provider`}}",
+
+      "vm_name":                "{{user `name`}}_{{user `provider`}}",
+      "cpus":                   "{{user `cpus`}}",
+      "memory":                 "{{user `ram`}}",
+      "disk_size":              "{{user `hdd_size`}}",
+
+      "iso_target_path":        "{{user `iso_target_path`}}",
+      "iso_urls":               [
+                                  "{{user `iso_local`}}",
+                                  "{{user `iso_url`}}"
+                                ],
+      "iso_checksum":           "{{user `iso_checksum`}}",
+
+      "http_directory":         "{{user `http_directory`}}",
+
+      "ssh_username":           "{{ user `user` }}",
+      "ssh_password":           "{{ user `password` }}",
+      "ssh_port":               22,
+      "ssh_wait_timeout":       "60m",
+
+      "shutdown_command":       "echo '{{user `password`}}'|sudo -S shutdown -P now",
+
+      "boot_wait":              "4s",
+      "boot_command": [
+        "<up><wait><tab><wait> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `kickstart_file`}}<enter><wait>"
+      ]
+    },
+    {
+      "name":                   "vmware",
+      "type":                   "vmware-iso",
+      "guest_os_type":          "centos-64",
+      "format":                 "ova",
+
+      "headless":               "{{user `headless`}}",
+      "output_directory":       "{{user `output_directory`}}/{{user `name`}}_{{user `provider`}}",
+
+      "vm_name":                "{{user `name`}}_{{user `provider`}}",
+      "cpus":                   "{{user `cpus`}}",
+      "memory":                 "{{user `ram`}}",
+      "disk_size":              "{{user `hdd_size`}}",
+
+      "iso_target_path":        "{{user `iso_target_path`}}",
+      "iso_urls":               [
+                                  "{{user `iso_local`}}",
+                                  "{{user `iso_url`}}"
+                                ],
+      "iso_checksum":           "{{user `iso_checksum`}}",
+
+      "http_directory":         "{{user `http_directory`}}",
+
+      "ssh_username":           "{{ user `user` }}",
+      "ssh_password":           "{{ user `password` }}",
+      "ssh_port":               22,
+      "ssh_wait_timeout":       "60m",
+
+      "shutdown_command":       "echo '{{user `password`}}'|sudo -S shutdown -P now",
+
+      "boot_wait":              "4s",
+      "boot_command": [
+        "<up><wait><tab><wait> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `kickstart_file`}}<enter><wait>"
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type":               "shell",
+      "execute_command":    "echo '{{user `password`}}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "{{user `script_directory`}}/vagrant.sh",
+        "{{user `script_directory`}}/{{user `provider`}}.sh",
+        "{{user `script_directory`}}/subscription.sh"
+      ]
+    }
+  ],
+
+  "post-processors": [{
+    "type": "vagrant",
+    "only": [
+      "libvirt",
+      "virtualbox"
+    ],
+    "keep_input_artifact": true,
+    "output": "{{user `output_directory`}}/{{ user `name` }}_{{.Provider}}.box"
+  }]
+}

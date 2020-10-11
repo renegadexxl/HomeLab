@@ -1,0 +1,10 @@
+iso/
+finished/
+vagrant/
+log/
+validate.*
+*.iso
+*.box
+*.ova
+*.qcow2
+*.pwd

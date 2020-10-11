@@ -5,6 +5,19 @@ The Kickstart File installs the Fedora 32 Cinnamon Spin and sets a Setup Script 
 
 Parts of the Kickstart file were shamelessly copied from the https://pagure.io/fedora-kickstarts/tree/master[official Fedora Kickstart Files].
 
+In the end the whole thing will produce a Fedora 32 Workstation with Cinnamon Desktop and all the tools I thought I needed.
+The script responsible for setting up all the tools and making them work together the way I feel they should will evolve over time,
+the more I use the tools involved and learn more.
+
+Currently the setup does the following:
+
+- Install cli tools like vim, zsh, mc, netstat, dig, git, ...
+- configure the look and feel of the terminal, zsh and vim
+- Install and configure Virtualization software libvirt, virtualbox and vmware player
+- Install Packer & Vagrant and configure them to work with those VM's.
+- Install Google Chrome Browser
+- Install Atom Text editor and useful plugins
+
 == Prerequisite
 
 - Working Workstation to create USB Stick or burn CD.
@@ -30,3 +43,16 @@ boot: linux ks=https://raw.githubusercontent.com/renegadexxl/HomeLab/master/Deve
 ----
 - Wait for your Workstation to finish installing, rebooting and your setup script to finish.
 - Done.
+
+== Don't rush it, check my code
+
+A lot of the script deals with my personal preferences.
+I like ZSH and VIM and Use Oh-My-Zsh with various plugins.
+That may not suite your tasted, so check my script and change it to suite yours.
+
+Take your time and don't rush it, this is the machine you will spend a lot of time in front of.
+You should feel comfortable with it.
+
+My code should be sufficiently commented to make editing it relatively easy and yes, I know it isn't the most efficient or clean and secure way to write a bash script.
+It is however, relatively easy to read and modify.
+Which was more important for me in this case.
